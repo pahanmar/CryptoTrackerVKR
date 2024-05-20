@@ -1,30 +1,44 @@
-import React, { Suspense, useEffect, useState } from "react";
-import { View, Text } from "react-native";
-import PortfolioAssetsList from "./components/PortfolioAssetsList";
-import{getBalance} from '../../services/requests'
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, RefreshControl } from 'react-native';
+import { useWatchlist } from '../../contexts/WatchlistContext';
+import CoinItem from '../../components/CoinItem';
+import { getWatchlistedCoins } from '../../services/requests';
+import PortfileCoinItem from '../../components/PortfileCoinItem';
 
 const PortfolioScreen = () => {
-  const [ balance, setBalance ] = useState(null)
+  const [coins, setCoins] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const fetchBalance = async () => {
-    const balanceInfo = await getBalance('btc', '3AZHcgLnJL5C5xKo33mspyHpQX7x4H5bBw');
-    if (!balanceInfo) return
+  const transformCoinIds = () => [ 'bitcoin', 'ethereum', 'tether' ].join('%2C');
 
-    setBalance(balanceInfo)
+  const fetchWatchlistedCoins = async () => {
+    if (loading) {
+      return;
+    }
+    setLoading(true);
+    const watchlistedCoinsData = await getWatchlistedCoins(1, transformCoinIds());
+    console.log(watchlistedCoinsData)
+    setCoins(watchlistedCoinsData);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchBalance()
+    fetchWatchlistedCoins()
   }, [])
 
   return (
-    <View style={{ flex: 1 }}>
-      <View>
-
-        <Text style={{color:"white", padding: 20}}>Balance: {balance}</Text>
-      </View>
-    </View>
-  );
+    <FlatList 
+      data={coins}
+      renderItem={({ item }) => <PortfileCoinItem amount={1} marketCoin={item} />}
+      refreshControl={
+        <RefreshControl 
+          refreshing={loading}
+          tintColor="white"
+          onRefresh={fetchWatchlistedCoins}
+        />
+      }
+    />
+  )
 };
 
 export default PortfolioScreen;
