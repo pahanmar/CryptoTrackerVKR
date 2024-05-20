@@ -1,14 +1,16 @@
 import React from "react";
-import { Text, View, Image, Pressable } from 'react-native';
+import { Text, View, Image, Pressable, Alert } from 'react-native';
 import styles from './styles';
 import { AntDesign } from '@expo/vector-icons';
 import { useNavigation } from "@react-navigation/native";
+import { getValueForToStorage, saveToStorage } from "../../screens/PortfolioScreen";
 
+function capDigits(n) {
+    return Math.floor(n * 1000000) / 1000000
+}
 
-const PortfileCoinItem = ({marketCoin, amount}) => {
+const PortfileCoinItem = ({marketCoin, amount, address, index, refresh}) => {
     if (!marketCoin) return <View></View>
-
-    console.log(marketCoin, amount)
 
     const { 
         name,
@@ -26,7 +28,33 @@ const PortfileCoinItem = ({marketCoin, amount}) => {
         <Pressable
             style={styles.coinContainer}
             onPress={()=>{
-
+                Alert.alert(
+                    'Delete this address',
+                    'Are you sure?',
+                    [
+                      {
+                        text: 'No',
+                        onPress: () => {
+        
+                        },
+                        style: 'cancel',
+                      },
+                      {
+                        text: 'Yes',
+                        onPress: async () => {
+                          const data = JSON.parse(await getValueForToStorage('portfolio') ?? '[]')
+                        
+                          data.splice(index, 1)
+                          await saveToStorage('portfolio', JSON.stringify(data))
+                          refresh()
+                        }
+                      }
+                    ],
+                    {
+                      cancelable: true,
+                      onDismiss: () => {},
+                    },
+                  );
             }}
             >
             <Image source={{uri: image}}
@@ -50,8 +78,8 @@ const PortfileCoinItem = ({marketCoin, amount}) => {
                 </View>
             </View>
             <View style={{ marginLeft: 'auto',alignItems: 'flex-end'}}>
-                <Text style={styles.title}>${amount * current_price}</Text>
-                <Text style={styles.text}>{amount}</Text>
+                <Text style={styles.title}>${capDigits(parseFloat(amount) * current_price)}</Text>
+                <Text style={styles.text}>{capDigits(amount)}</Text>
             </View>
         </Pressable>
     );

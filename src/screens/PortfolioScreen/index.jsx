@@ -1,63 +1,99 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl } from 'react-native';
+import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet } from 'react-native';
 import { useWatchlist } from '../../contexts/WatchlistContext';
 import CoinItem from '../../components/CoinItem';
-import { getWatchlistedCoins } from '../../services/requests';
+import { getBalance, getWatchlistedCoins } from '../../services/requests';
 import PortfileCoinItem from '../../components/PortfileCoinItem';
 import * as SecureStore from 'expo-secure-store';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 
-async function save(key, value) {
+
+
+
+
+const styles = StyleSheet.create({
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 4,
+    elevation: 3,
+    backgroundColor: 'black',
+    marginTop: 15
+  },
+  text: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: 'bold',
+    letterSpacing: 0.25,
+    color: 'white',
+  }
+});
+
+export async function saveToStorage(key, value) {
   await SecureStore.setItemAsync(key, value)
 }
 
-async function getValueFor(key) {
+export async function getValueForToStorage(key) {
   return await SecureStore.getItemAsync(key)
-}
-
-const fullNames = {
-  'btc': 'bitcoin',
-  'eth': 'ethereum',
-  'usdt': 'tether'
 }
 
 let m = new Map()
 
 const PortfolioScreen = () => {
+  const navigation =useNavigation();
+  const isFocused = useIsFocused();
+
   const [port, setPort] = useState([])
   const [loading, setLoading] = useState(false);
   const [counter, setCounter] = useState(0)
+  const [updatedCache, setUpdatedCache] = useState(false)
 
   const transformCoinIds = () => [ 'bitcoin', 'ethereum', 'tether' ].join('%2C');
 
-  const loadPort = async () => {
-    const data = JSON.parse(await getValueFor('portfolio') ?? '[]')
+  const loadPort = async (cache) => {
+    const data = JSON.parse(await getValueForToStorage('portfolio') ?? '[]')
+    setPort(data)
 
-    if (data.length == 0) {
-      data.push({
-        token: 'btc',
-        address: '3AZHcgLnJL5C5xKo33mspyHpQX7x4H5bBw',
-        amount: 0.05
-      })
-      
-      data.push({
-        token: 'btc',
-        address: '3AZHcgLnJL5C5xKo33mspyHpQX7x4H5bBw',
-        amount: 0.25
-      })
+    if (cache) {
+      updateCache() 
+    }
+  }
 
-      data.push({
-        token: 'eth',
-        address: '0x68F5a55c79CDE3BA8256d1720dbfDC435231F397',
-        amount: 0.1
-      })
+  const updateCache = async (force) => {
+    const lastUpdated = await getValueForToStorage('lastUpdated')
+    const shouldUpdate = !lastUpdated || Math.abs(Date.now() - new Date(parseInt(lastUpdated))) / 36e5 > 10;
+
+    if (!force && !shouldUpdate) return
+
+    console.log('Updating cache', lastUpdated)
+
+    const data = JSON.parse(await getValueForToStorage('portfolio') ?? '[]')
+    const promises = []
+
+    for (const point of data) {
+      promises.push(new Promise(async (resolve, reject) => {
+        point.amount = await getBalance(point.token, point.address)
+        resolve()
+      }))
     }
 
+    setLoading(true)
+    await Promise.all(promises)
+    await saveToStorage('portfolio', JSON.stringify(data))
+    await saveToStorage('lastUpdated', Date.now().toString())
+
+    setLoading(false)
     setPort(data)
+
+    setUpdatedCache(!!force)
   }
 
   useEffect(() => {
-    loadPort()
-  }, [])
+    if (!isFocused) return
+    loadPort(true)
+  }, [isFocused])
 
   const fetchWatchlistedCoins = async () => {
     const watchlistedCoinsData = await getWatchlistedCoins(1, transformCoinIds());
@@ -74,17 +110,29 @@ const PortfolioScreen = () => {
   }, [])
 
   return (
+    <View style={{ padding: 15 }}>
+    { port.length == 0 && <View>
+      <Text style={{ color: 'white' }}>No assets, get gut</Text>
+    </View>}
     <FlatList 
       data={port}
-      renderItem={({ item }) => <PortfileCoinItem amount={item.amount} marketCoin={m.get(item.token)} />}
-      refreshControl={
-        <RefreshControl 
-          refreshing={loading}
-          tintColor="white"
-          onRefresh={fetchWatchlistedCoins}
-        />
-      }
+      renderItem={({ item, index }) => <PortfileCoinItem refresh={loadPort} amount={item.amount} address={item.address} index={index} marketCoin={m.get(item.token)} />}
     />
+    <Pressable style={styles.button} onPress={() => navigation.navigate("AddNewAssetScreen")}>
+      <Text style={styles.text}>Add</Text>
+    </Pressable>
+    <Pressable style={styles.button} disabled={loading || updatedCache} onPress={() => updateCache(true)}>
+      <Text style={{
+        fontSize: 16,
+        lineHeight: 21,
+        fontWeight: 'bold',
+        letterSpacing: 0.25,
+        color: loading || updatedCache ? 'gray' : 'white',
+      }}>Update</Text>
+    </Pressable>
+    </View>
+    
+    
   )
 };
 

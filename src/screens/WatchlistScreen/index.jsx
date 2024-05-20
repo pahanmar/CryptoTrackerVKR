@@ -25,10 +25,17 @@ const WatchlistScreen = () => {
   useEffect(() => {
     if (watchlistCoinIds.length > 0) {
       fetchWatchlistedCoins();
+    } else {
+      setCoins([]);
     }
   }, [watchlistCoinIds]);
 
   return (
+    <View>
+      {coins.length == 0 && <Text style={{
+        color: 'white',
+        padding: 15
+      }}>No tokens added to watchlist yet</Text>}
     <FlatList 
       data={coins}
       renderItem={({ item }) => <CoinItem marketCoin={item} />}
@@ -39,7 +46,7 @@ const WatchlistScreen = () => {
           onRefresh={watchlistCoinIds.length > 0 ? fetchWatchlistedCoins : null}
         />
       }
-    />
+    /></View>
   )
 };
 
