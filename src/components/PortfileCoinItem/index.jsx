@@ -6,8 +6,11 @@ import { useNavigation } from "@react-navigation/native";
 
 
 const PortfileCoinItem = ({marketCoin, amount}) => {
+    if (!marketCoin) return <View></View>
+
+    console.log(marketCoin, amount)
+
     const { 
-        id,
         name,
         current_price, 
         price_change_percentage_24h, 

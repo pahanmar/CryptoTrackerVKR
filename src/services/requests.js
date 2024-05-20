@@ -30,7 +30,7 @@ const printAxiosError = (error) => {
 }
 
 const debugRequest = (request) => {
-  console.log(request, request.cached)
+  if (false) console.log(request, request.cached)
 }
 
 export const getDetailedCoinData = async (coinId) => {

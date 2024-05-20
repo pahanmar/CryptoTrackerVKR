@@ -4,22 +4,69 @@ import { useWatchlist } from '../../contexts/WatchlistContext';
 import CoinItem from '../../components/CoinItem';
 import { getWatchlistedCoins } from '../../services/requests';
 import PortfileCoinItem from '../../components/PortfileCoinItem';
+import * as SecureStore from 'expo-secure-store';
+
+async function save(key, value) {
+  await SecureStore.setItemAsync(key, value)
+}
+
+async function getValueFor(key) {
+  return await SecureStore.getItemAsync(key)
+}
+
+const fullNames = {
+  'btc': 'bitcoin',
+  'eth': 'ethereum',
+  'usdt': 'tether'
+}
+
+let m = new Map()
 
 const PortfolioScreen = () => {
-  const [coins, setCoins] = useState([]);
+  const [port, setPort] = useState([])
   const [loading, setLoading] = useState(false);
+  const [counter, setCounter] = useState(0)
 
   const transformCoinIds = () => [ 'bitcoin', 'ethereum', 'tether' ].join('%2C');
 
-  const fetchWatchlistedCoins = async () => {
-    if (loading) {
-      return;
+  const loadPort = async () => {
+    const data = JSON.parse(await getValueFor('portfolio') ?? '[]')
+
+    if (data.length == 0) {
+      data.push({
+        token: 'btc',
+        address: '3AZHcgLnJL5C5xKo33mspyHpQX7x4H5bBw',
+        amount: 0.05
+      })
+      
+      data.push({
+        token: 'btc',
+        address: '3AZHcgLnJL5C5xKo33mspyHpQX7x4H5bBw',
+        amount: 0.25
+      })
+
+      data.push({
+        token: 'eth',
+        address: '0x68F5a55c79CDE3BA8256d1720dbfDC435231F397',
+        amount: 0.1
+      })
     }
-    setLoading(true);
+
+    setPort(data)
+  }
+
+  useEffect(() => {
+    loadPort()
+  }, [])
+
+  const fetchWatchlistedCoins = async () => {
     const watchlistedCoinsData = await getWatchlistedCoins(1, transformCoinIds());
-    console.log(watchlistedCoinsData)
-    setCoins(watchlistedCoinsData);
-    setLoading(false);
+
+    for (const d of watchlistedCoinsData) {
+      m.set(d.symbol, d)
+    }
+
+    setCounter(counter + 1)
   };
 
   useEffect(() => {
@@ -28,8 +75,8 @@ const PortfolioScreen = () => {
 
   return (
     <FlatList 
-      data={coins}
-      renderItem={({ item }) => <PortfileCoinItem amount={1} marketCoin={item} />}
+      data={port}
+      renderItem={({ item }) => <PortfileCoinItem amount={item.amount} marketCoin={m.get(item.token)} />}
       refreshControl={
         <RefreshControl 
           refreshing={loading}
