@@ -45,6 +45,9 @@ const PortfolioAssetsList = () => {
         total + currentAsset.priceBought * currentAsset.quantityBought,
       0
     );
+
+    if (boughtBalance == 0) return 0
+    
     return (
       (((currentBalance - boughtBalance) / boughtBalance) * 100).toFixed(2) || 0
     );
