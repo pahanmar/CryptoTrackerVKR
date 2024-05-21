@@ -82,6 +82,93 @@ const CoinDetailedScreen = () => {
     (range) => onSelectedRangeChange(range),
     []
   );
+  
+  const calcProfiabilityForThePeriod = () => {
+    return ((prices[prices.length-1][1]-prices[0][1])/prices[0][1]*100)
+  };
+  const calcProfiabilityForThePeriodInUSD = () => {
+    return ((prices[prices.length-1][1]-prices[0][1]))
+  };
+
+  const calcVolatility = () => {
+    let arr = [];
+    let sum = 0;
+    for (let i = 0; i < prices.length; i++) {
+      arr.push(prices[i][1]);
+      sum +=prices[i][1];
+    }
+    average = sum/arr.length;
+    sumStandartDevation =0;
+    for (let i = 0; i < arr.length; i++) {
+      sumStandartDevation += (arr[i]-average)**2;
+    }
+    const dispersia = sumStandartDevation/arr.length;
+    return  Math.sqrt(dispersia) * Math.sqrt(arr.length);
+  }
+
+  const calcVolatilityInPercentage = () => {
+    let arr = [];
+    let sum = 0;
+    for (let i = 1; i < prices.length; i++) {
+      arr.push((prices[i][1]/prices[i-1][1]-1)*100);
+      sum +=arr[i-1];
+    }
+    average = sum/arr.length;
+    sumStandartDevation =0;
+    for (let i = 0; i < arr.length; i++) {
+      sumStandartDevation += (arr[i]-average)**2;
+    }
+    const dispersia = sumStandartDevation/arr.length;
+    console.log( Math.sqrt(dispersia) * Math.sqrt(arr.length))
+    return  Math.sqrt(dispersia) * Math.sqrt(arr.length);
+  }
+
+
+  const calcDispersia = () => {
+    let arr = [];
+    let sum = 0;
+    for (let i = 0; i < prices.length; i++) {
+      arr.push(prices[i][1]);
+      sum +=prices[i][1];
+      
+    }
+    average = sum/arr.length;
+    sumStandartDevation =0;
+    for (let i = 0; i < arr.length; i++) {
+      sumStandartDevation += (arr[i]-average)**2;
+    }
+    return (sumStandartDevation/arr.length);
+  }
+
+  const calcDispersiaInPrecent = () => {
+    let arr = [];
+    let sum = 0;
+    for (let i = 1; i < prices.length; i++) {
+      arr.push((prices[i][1]/prices[i-1][1]-1)*100);
+      sum +=arr[i-1];
+      
+    }
+    average = sum/arr.length;
+    sumStandartDevation =0;
+    for (let i = 0; i < arr.length; i++) {
+      sumStandartDevation += (arr[i]-average)**2;
+    }
+    return (sumStandartDevation/arr.length);
+  }
+
+  const calkDrawdownOfTheStock = () => {
+    let max = 0;
+    for (let i = 0; i < prices.length; i++) {
+      if (max<(prices[i][1])) { max =prices[i][1] }
+    }
+    if (max<=prices[prices.length-1][1]) { 
+      console.log(max)
+      console.log(prices[prices.length-1][1])
+    return 0;
+    } else { 
+      return max-prices[prices.length-1][1];
+    }
+  }
 
   if (loading || !coin || !coinMarketData || !coinCandleChartData) {
     return <ActivityIndicator size="large" />;
@@ -100,6 +187,7 @@ const CoinDetailedScreen = () => {
   } = coin;
 
   const { prices } = coinMarketData;
+
 
   const percentageColor =
     price_change_percentage_24h < 0 ? "#ea3943" : "#16c784" || "white";
@@ -211,7 +299,7 @@ const CoinDetailedScreen = () => {
               })
             )}
           >
-            <CandlestickChart height={screenWidth / 2} width={screenWidth}>
+            <CandlestickChart height={screenWidth / 2.5} width={screenWidth}>
               <CandlestickChart.Candles />
             </CandlestickChart>
             <View style={styles.candleStickDataContainer}>
@@ -284,6 +372,36 @@ const CoinDetailedScreen = () => {
         </View>
       
       </LineChart.Provider>
+      <View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between"}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Profiability for this period in precent:</Text>
+        <Text style={{ color: "white", fontWeight: "700", marginRight: 10 }}>{calcProfiabilityForThePeriod().toFixed(2)}%</Text>
+           </View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between",}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Profiability for this period:</Text>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }} >{calcProfiabilityForThePeriodInUSD().toFixed(2)}$</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between",}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Volatility for this period in precent :</Text>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }} >{calcVolatilityInPercentage().toFixed(2)}%</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between",}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Volatility for this period:</Text>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }} >{calcVolatility().toFixed(2)}$</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between",}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Dispersia for this period:</Text>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }} >{calcDispersia().toFixed(2)}$</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between",}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Dispersia for this period in precent:</Text>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }} >{calcDispersiaInPrecent().toFixed(2)}%</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center",justifyContent: "space-between",}}>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }}>Drawdown for this period:</Text>
+        <Text style={{ color: "white", fontWeight: "700", margin: 10 }} >{calkDrawdownOfTheStock().toFixed(2)}$</Text>
+      </View>
+      </View>
     </View>
   );
 };

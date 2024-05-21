@@ -18,10 +18,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
+      },
+      "package": "com.marpahan2002.CryptoTracker"
     },
     "plugins": [
       [
@@ -30,6 +28,11 @@
           "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "74960c3c-4026-4bd6-a080-8c86efe0cef8"
+      }
+    }
   }
 }

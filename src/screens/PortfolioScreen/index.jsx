@@ -118,6 +118,7 @@ const PortfolioScreen = () => {
       data={port}
       renderItem={({ item, index }) => <PortfileCoinItem refresh={loadPort} amount={item.amount} address={item.address} index={index} marketCoin={m.get(item.token)} />}
     />
+    console.log()
     <Pressable style={styles.button} onPress={() => navigation.navigate("AddNewAssetScreen")}>
       <Text style={styles.text}>Add</Text>
     </Pressable>
