@@ -24,6 +24,10 @@ const PortfileCoinItem = ({marketCoin, amount, address, index, refresh}) => {
 
     const percentageColor = price_change_percentage_24h < 0 ? '#ea3943' : '#16c784'
 
+    const totalBalance = () =>{
+        console.log(capDigits(parseFloat(amount) * current_price))
+        return capDigits(parseFloat(amount) * current_price)
+    }
     return (
         <Pressable
             style={styles.coinContainer}
@@ -78,7 +82,7 @@ const PortfileCoinItem = ({marketCoin, amount, address, index, refresh}) => {
                 </View>
             </View>
             <View style={{ marginLeft: 'auto',alignItems: 'flex-end'}}>
-                <Text style={styles.title}>${capDigits(parseFloat(amount) * current_price)}</Text>
+                <Text style={styles.title}>${capDigits(parseFloat(amount) * current_price) }</Text>
                 <Text style={styles.text}>{capDigits(amount)}</Text>
             </View>
         </Pressable>

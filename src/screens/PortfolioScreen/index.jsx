@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet } from 'react-native';
-import { useWatchlist } from '../../contexts/WatchlistContext';
-import CoinItem from '../../components/CoinItem';
 import { getBalance, getWatchlistedCoins } from '../../services/requests';
 import PortfileCoinItem from '../../components/PortfileCoinItem';
 import * as SecureStore from 'expo-secure-store';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
+import { id } from 'ethers';
 
 
 
@@ -101,14 +100,23 @@ const PortfolioScreen = () => {
     for (const d of watchlistedCoinsData) {
       m.set(d.symbol, d)
     }
-
+    /*let arr =[];
+    coinCost =[];
+    for (let i =0; i<port.length;i++ ) {
+      let token = (port[i].token);
+      arr.push({amount:port[i].amount, token:port[i].token, total:port[i].amount*(m.get(port[i].token).current_price)})
+    }  */
     setCounter(counter + 1)
+    return arr;
   };
+  
 
   useEffect(() => {
     fetchWatchlistedCoins()
   }, [])
+  
 
+  
   return (
     <View style={{ padding: 15 }}>
     { port.length == 0 && <View>
@@ -118,7 +126,6 @@ const PortfolioScreen = () => {
       data={port}
       renderItem={({ item, index }) => <PortfileCoinItem refresh={loadPort} amount={item.amount} address={item.address} index={index} marketCoin={m.get(item.token)} />}
     />
-    console.log()
     <Pressable style={styles.button} onPress={() => navigation.navigate("AddNewAssetScreen")}>
       <Text style={styles.text}>Add</Text>
     </Pressable>
@@ -129,8 +136,9 @@ const PortfolioScreen = () => {
         fontWeight: 'bold',
         letterSpacing: 0.25,
         color: loading || updatedCache ? 'gray' : 'white',
-      }}>Update</Text>
+      }}>Update{}</Text>
     </Pressable>
+    
     </View>
     
     

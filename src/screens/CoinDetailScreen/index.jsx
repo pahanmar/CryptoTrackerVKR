@@ -119,7 +119,6 @@ const CoinDetailedScreen = () => {
       sumStandartDevation += (arr[i]-average)**2;
     }
     const dispersia = sumStandartDevation/arr.length;
-    console.log( Math.sqrt(dispersia) * Math.sqrt(arr.length))
     return  Math.sqrt(dispersia) * Math.sqrt(arr.length);
   }
 
@@ -162,8 +161,6 @@ const CoinDetailedScreen = () => {
       if (max<(prices[i][1])) { max =prices[i][1] }
     }
     if (max<=prices[prices.length-1][1]) { 
-      console.log(max)
-      console.log(prices[prices.length-1][1])
     return 0;
     } else { 
       return max-prices[prices.length-1][1];
